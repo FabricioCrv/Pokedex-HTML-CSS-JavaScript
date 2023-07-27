@@ -1,5 +1,5 @@
 const pokedex = document.getElementById('pokedex');
-
+const pokeCache = {};
 console.log(pokedex);
 
 const getPokemon = () => {
@@ -27,7 +27,7 @@ const displayPokemon = (pokemon) => {
     console.log(pokemon);
     const pokemonHTMLString = pokemon.map(
         (pkmn) => `
-        <li class ="card">
+        <li class ="card" onclick = "selectPokemon(${pkmn.id})">
             <img class="card-image" src="${pkmn.image}"/>
             <h2 class="card-title">${pkmn.id}. ${pkmn.name}</h2>
             <p class="card-subtitle">Type: ${pkmn.type}</p>
@@ -38,5 +38,41 @@ const displayPokemon = (pokemon) => {
     pokedex.innerHTML = pokemonHTMLString;
 };
 
+//criando um popup que mostra informações extras de um pokemon para o usuário
+
+const selectPokemon = async (id) => {
+    //para o site não ficar criando um novo pedido na rede cada vez que clicar no mesmo pokemon
+    if (!pokeCache[id]){
+        const url = `https://pokeapi.co/api/v2/pokemon/${id}`;
+        const res = await fetch(url);
+        const pkmn = await res.json();
+        pokeCache[id] = pkmn;
+        displayPopup(pkmn);
+    }
+    else{
+        displayPopup(pokeCache[id]);
+    };
+};
+
+const displayPopup = (pkmn) => {
+    const image = pkmn.sprites['front_default'];
+    const htmlString = `
+    <div class="popup">
+        <button id="closeBtn" onclick="closePopup()">Close</button>
+        <div class="card">
+            <img class="card-image" src="${image}"/>
+            <h2 class="card-title">${pkmn.id}. ${pkmn.name}</h2>
+            <p><small>Height: </small>${pkmn.height}
+            <p><small>Weight: </small>${pkmn.weight}
+        </div>
+    </div>`;
+    pokedex.innerHTML = htmlString + pokedex.innerHTML;
+};
+
+//funcionalidade para fechar o popup
+const closePopup = () => {
+    const popup = document.querySelector('.popup');
+    popup.parentElement.removeChild(popup);
+}
 getPokemon();
 
